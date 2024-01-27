@@ -1,6 +1,137 @@
-/******* Change Box Model ***************/
+:root {
+  /* Palette Quick-Reference */
+  --primary-color: black;
+  --secondary-color: white;
+  --accent-color: #01b0d3;
+
+  /* Default Fonts */
+  --heading-font:'Times New Roman', Times, serif;
+  --paragraph-font: Arial, Helvetica, sans-serif;
+
+  /* Text Colors */
+  --headline-color-on-white: black;  
+  --headline-color-on-color: white; 
+  --paragraph-color-on-white: black; 
+  --paragraph-color-on-color: black;
+  --paragraph-background-color: #01b0d3;
+  --nav-hover-link-color: #fff152;
+}
+
+/* Change Box Model */
 *,
 *:before,
 *:after {
   box-sizing: border-box;
+}
+
+/* Header CSS */
+header{
+  display:grid;
+  grid-template-columns: 50% 50%;
+}
+.siteName a{
+  font-family: var(--paragraph-font);
+  color:var(--primary-color);
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 2.5em; /* 40px/16=2.5em */
+}
+.tools a{
+  font-family: var(--paragraph-font);
+  color:var(--primary-color);
+  text-decoration: none;
+}
+
+/* Nav CSS */
+nav ul{
+  display:grid;
+  grid-template-columns: 20% 20% 20% 20% 20%;
+  list-style-type: none;
+  background-color: var(--primary-color);
+  color:var(--secondary-color);
+}
+nav li{
+  font-family: var(--paragraph-font);
+  text-decoration: none;
+}
+nav li:hover{
+  color: var(--nav-hover-link-color);
+}
+
+/* Body CSS */
+.wrapper {
+  margin: 0;
+  padding: 1em;
+}
+.hero-box {
+  position: relative;
+  width: 100%;
+  min-height: 250px;
+}
+.own-today {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.8);
+  color:var(--accent-color);
+  padding: .25em;
+  z-index: 2;
+  width: 50%;
+  max-width: 250px;
+  max-height: 250px;
+}
+.hero-img {
+  width: 75%;
+  max-width: 100%;
+  display: block;
+  margin: 0 auto;
+  border-radius: 10px;
+}
+.own-today .own-img {
+  display: block;
+  margin-top: 15px;
+  max-width: 100%;
+}
+.own-today p{
+ font-family: var(--paragraph-font);
+ color:var(--accent-color);
+}
+.link-box{
+  display: grid;
+  grid-template-columns: 50% 50%;
+  gap: 1em;
+}
+.link-box a{
+  background-color: var(--accent-color);
+  color: var(--paragraph-color-on-color);
+  width: 100%;
+  border: solid 2px;
+  border-color: var(--primary-color);
+}
+.link-box a:hover{
+  color: var(--nav-hover-link-color);
+}
+.upgrade_img, .upgrade-label{
+  display: block;
+  margin: 0 auto;
+  text-align:center;
+}
+
+/* Large Screen CSS */
+@media screen and (min-width: 700px) {
+  body{
+    background-image: url("/images/site/checkerboard.jpg");
+  }
+  .wrapper {
+    margin: 0 auto;
+    padding: 1em;
+    width: 75%;
+    border: solid 4px;
+    border-color: var(--accent-color);
+    border-radius: 15px;
+    background-color: var(--secondary-color);
+  }
+  .bottom-box{
+    display:flex;
+    flex-direction: row-reverse;
+    justify-content: space-around;
+  }
 }
