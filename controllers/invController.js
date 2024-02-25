@@ -19,5 +19,21 @@ invCont.buildByClassificationId = async function (req, res, next) {
   })
 }
 
+invCont.showItemDetail = async function (req, res, next) {
+  try {
+    const itemId = req.params.itemId;
+    const item = await invModel.getInventoryItemById(itemId); // Function to retrieve inventory item by ID from the model
+    if (!item) {
+      throw new Error("Inventory item not found");
+    }
+    const formattedItem = utilities.formatItemForDetailView(item); // Custom function to format item for display
+    res.render("./inventory/detail", {
+      title: `${item.inv_make} ${item.inv_model}`,
+      item: formattedItem,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = invCont

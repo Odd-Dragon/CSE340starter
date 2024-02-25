@@ -1,0 +1,14 @@
+<h1><%= item.make %> <%= item.model %> (<%= item.year %>)</h1>
+<img src="<%= item.inv_image %>" alt="<%= item.make %> <%= item.model %>">
+<h2>Description:</h2>
+<p><%= item.description %></p>
+<h2>Details:</h2>
+  <ul>
+  <% if (item.inv_price) { %>
+    <li>Price: $<%= item.inv_price.toLocaleString() %></li>
+  <% } %>
+  <% if (item.inv_miles) { %>
+    <li>Mileage: <%= item.inv_miles.toLocaleString() %> miles</li>
+  <% } %>
+  <li>Color: <%= item.inv_color %></li>
+  

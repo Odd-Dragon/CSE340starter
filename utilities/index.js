@@ -58,6 +58,28 @@ Util.buildClassificationGrid = async function(data){
   return grid
 }
 
+Util.formatItemForDetailView = function (item) {
+  // Custom function to format item data for detail view
+  return {
+    make: item.inv_make,
+    model: item.inv_model,
+    year: item.inv_year,
+    price: formatPrice(item.inv_price),
+    mileage: formatMileage(item.inv_miles),
+    description: item.inv_description,
+  }
+}
+
+function formatPrice(price) {
+  // Function to format price as U.S. Dollars with appropriate currency symbol and commas
+  return "$" + price.toLocaleString();
+}
+
+function formatMileage(mileage) {
+  // Function to format mileage with commas
+  return mileage.toLocaleString() + " miles";
+}
+
 /* ****************************************
  * Middleware For Handling Errors
  * Wrap other function in this for 
