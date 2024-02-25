@@ -45,7 +45,7 @@ header{
 /* Nav CSS */
 nav ul{
   display:grid;
-  grid-template-columns: 20% 20% 20% 20% 20%;
+  grid-template-columns: 16% 17% 16% 16% 17% 16%;
   list-style-type: none;
   background-color: var(--primary-color);
   color:var(--secondary-color);
