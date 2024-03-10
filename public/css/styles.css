@@ -135,3 +135,11 @@ nav li:hover{
     justify-content: space-around;
   }
 }
+
+/* Form CSS */
+input:required:invalid, input:focus:invalid {
+  background-color:orangered;
+ }
+input:required:valid {
+  background-color: var(--accent-color);
+ }

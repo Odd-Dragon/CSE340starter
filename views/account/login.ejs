@@ -1,0 +1,35 @@
+<% if (title) { %>
+    <h1><%= title %></h1>
+<% } else {
+    res.redirect('/');
+} %>
+
+<%- messages() %>
+<% if (errors) { %>
+    <ul class="notice">
+   <% errors.array().forEach(error => { %>
+     <li><%= error.msg %></li>
+  <%  }) %>
+   </ul>
+  <% } %>
+
+<% if (title === 'Login') { %>
+    <form id="loginForm" action="/account/login" method="post">
+        <div>
+            <label for="account_email">Email:</label>
+            <input type="email" id="account_email" name="account_email" required value="<%= locals.account_email %>">
+        </div>
+        <div>
+            <label for="account_password">Password:</label>
+            <div>
+            <span>Passwords must be at least 12 characters and contain at least 1 number, 1 capital letter and 1 special character</span> 
+            </div>
+            <input type="password" id="account_password" name="account_password" required pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{12,}$">
+        </div>
+        <div>
+            <button type="submit">Login</button>
+        </div>
+    </form>
+    <p>Don't have an account? <a href="/account/register">Register</a></p>
+<% } %>
+

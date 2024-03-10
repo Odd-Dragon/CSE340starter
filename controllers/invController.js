@@ -16,7 +16,37 @@ invCont.buildByClassificationId = async function (req, res, next) {
     title: className + " vehicles",
     nav,
     grid,
+    errors: null,
   })
+}
+
+/* ***************************
+ *  Build inventory item by inventory ID view
+ * ************************** */
+
+invCont.buildByInvID = async function (req, res, next) {
+  try {
+    const invId = req.params.invId;
+    const vehicle = await invModel.getInventoryByInvId(invId);
+    if (!vehicle) {
+      return res.status(404).send("Vehicle not found");
+    }
+    
+    // Retrieving navigation data and awaiting the promise
+    const nav = await utilities.getNav();
+    
+    const vehicleHTML = utilities.formatVehicleHTML(vehicle);
+    
+    res.render("./inventory/vehicle_detail", {
+      title: `${vehicle.inv_make} ${vehicle.inv_model}`,
+      nav,
+      vehicleHTML,
+      errors: null,
+    });
+  } catch (error) {
+    console.error("Error retrieving vehicle details: ", error);
+    res.status(500).send("Internal Server Error");
+  }
 }
 
 module.exports = invCont
