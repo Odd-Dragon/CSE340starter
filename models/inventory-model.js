@@ -25,13 +25,4 @@ async function getInventoryByClassificationId(classification_id) {
   }
 }
 
-async function getInventoryItemById (itemId) {
-  // Query database to retrieve inventory item by ID
-  // Example query: SELECT * FROM inventory WHERE inv_id = itemId
-  const query = "SELECT * FROM inventory WHERE inv_id = $1";
-  const values = [itemId];
-  const { rows } = await pool.query(query, values);
-  return rows[0];
-};
-
-module.exports = {getClassifications, getInventoryByClassificationId, getInventoryItemById};
+module.exports = {getClassifications, getInventoryByClassificationId};
