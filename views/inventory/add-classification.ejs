@@ -14,22 +14,11 @@
        </ul>
       <% } %>
 
-      <% if (title === 'Add Classification') { %>
-        <form id="classForm" action="/account/login" method="post">
-            <div>
-                <label for="account_email">Email:</label>
-                <input type="email" id="account_email" name="account_email" required value="<%= locals.account_email %>">
-            </div>
-            <div>
-                <label for="account_password">Password:</label>
-                <div>
-                <span>Passwords must be at least 12 characters and contain at least 1 number, 1 capital letter and 1 special character</span> 
-                </div>
-                <input type="password" id="account_password" name="account_password" required pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{12,}$">
-            </div>
-            <div>
-                <button type="submit">Login</button>
-            </div>
-        </form>
-        <p>Don't have an account? <a href="/account/register">Register</a></p>
-    <% } %>
+      <form action="/inv/add-classification" method="POST" id="addClassificationForm">
+        <div class="form-group">
+            <label for="classification_name">Classification Name:</label>
+            <input type="text" class="form-control" id="classification_name" name="classification_name" required pattern="[A-Za-z0-9]+">
+            <small id="nameHelp" class="form-text text-muted">Classification name cannot contain spaces or special characters.</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Classification</button>
+    </form>

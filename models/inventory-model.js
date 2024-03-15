@@ -38,4 +38,13 @@ async function getInventoryByInvId(invId) {
   }
 }
 
-module.exports = { getClassifications, getInventoryByClassificationId, getInventoryByInvId };
+async function addClassification(classificationName) {
+  try {
+      await pool.query("INSERT INTO classification (classification_name) VALUES ($1)", [classificationName]);
+  } catch (error) {
+      console.error("Error adding classification to the database: ", error);
+      throw error;
+  }
+}
+
+module.exports = { getClassifications, getInventoryByClassificationId, getInventoryByInvId, addClassification };

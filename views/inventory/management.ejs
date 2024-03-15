@@ -5,3 +5,10 @@
     } %>
 
     <%- messages() %>
+
+    <% if (title === 'Management') { %>
+        <div>
+            <a href="/inv/add-classification" class="btn btn-primary">Add New Classification</a>
+            <a href="/inv/add-inventory" class="btn btn-primary">Add New Inventory</a>
+        </div>
+    <% } %>
