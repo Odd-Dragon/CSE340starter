@@ -55,9 +55,11 @@ invCont.buildByInvID = async function (req, res, next) {
 invCont.renderManagementView = async function (req, res, next) {
   try {
     const nav = await utilities.getNav();
+    const classificationSelect = await utilities.buildClassificationList()
       res.render("./inventory/management", {
           title: "Management",
           nav,
+          classificationSelect
       });
   } catch (error) {
       console.error("Error rendering management view: ", error);
@@ -104,34 +106,77 @@ invCont.addNewClassification = async function(req, res) {
 invCont.addInventoryView = async (req, res) => {
   try {
       // Retrieve classification data
-      const classifications = await invModel.getClassifications();
       const nav = await utilities.getNav();
+      const classificationSelect = await utilities.buildClassificationList()
       // Render the view with classification data
-      res.render('inventory/add-inventory', { title: "Add Inventory", nav, errors: null, classifications: classifications.rows });
+      res.render('inventory/add-inventory', { title: "Add Inventory", nav, errors: null, classificationSelect });
   } catch (error) {
       console.error('Error retrieving classifications:', error);
       res.status(500).send('Internal Server Error');
   }
 };
 
+// Handle form submission for adding inventory
 invCont.addInventory = async (req, res) => {
   try {
-      // Extract data from the request body
-      const { make, model, year, price, classification_id, imagePath, thumbnailPath } = req.body;
-      if (!make || !model || !year || !price || !classification_id) {
-          return res.status(400).send('Missing required fields');
-      }
+    // Extract data from the request body
+    const { inv_make, inv_model, inv_year, inv_description, inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id } = req.body;
 
-      // Save the data to the database using the model
-      const result = await invModel.addInventory(make, model, year, price, classification_id, imagePath, thumbnailPath);
-      
-      // Redirect to management view if successful
-      res.redirect('/management');
+    // Check if any required field is missing
+    if (!inv_make || !inv_model || !inv_year || !inv_price || !classification_id) {
+      return res.status(400).send('Missing required fields');
+    }
+
+    // Save the data to the database using the model
+    await invModel.addInventory(inv_make, inv_model, inv_year, inv_description, inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id);
+
+    // Redirect to a success page or the management view
+    res.redirect('/inv');
   } catch (error) {
     console.error('Error adding inventory:', error);
     res.status(500).send('Failed to add inventory: ' + error.message);
   }
 };
 
+/* ***************************
+ *  Return Inventory by Classification As JSON
+ * ************************** */
+invCont.getInventoryJSON = async (req, res, next) => {
+  const classification_id = parseInt(req.params.classification_id)
+  const invData = await invModel.getInventoryByClassificationId(classification_id)
+  if (invData[0].inv_id) {
+    return res.json(invData)
+  } else {
+    next(new Error("No data returned"))
+  }
+}
+
+/* ***************************
+ *  Build edit inventory view
+ * ************************** */
+invCont.editInventoryView = async function (req, res, next) {
+  const inv_id = parseInt(req.params.inv_id);
+  let nav = await utilities.getNav();
+  const itemData = await invModel.getInventoryByInvId(inv_id);
+  const classificationSelect = await utilities.buildClassificationList();
+  const itemName = `${itemData.inv_make} ${itemData.inv_model}`
+  res.render("./inventory/edit-inventory", {
+    title: "Edit " + itemName,
+    nav,
+    classificationSelect: classificationSelect,
+    errors: null,
+    inv_id: itemData.inv_id,
+    inv_make: itemData.inv_make,
+    inv_model: itemData.inv_model,
+    inv_year: itemData.inv_year,
+    inv_description: itemData.inv_description,
+    inv_image: itemData.inv_image,
+    inv_thumbnail: itemData.inv_thumbnail,
+    inv_price: itemData.inv_price,
+    inv_miles: itemData.inv_miles,
+    inv_color: itemData.inv_color,
+    classification_id: itemData.classification_id
+  })
+}
 
 module.exports = invCont
