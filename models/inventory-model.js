@@ -53,10 +53,10 @@ async function addInventory(make, model, year, description, image, thumbnail, pr
     // Execute the query to insert inventory data into the database
     await pool.query(
       `INSERT INTO public.inventory (inv_make, inv_model, inv_year, inv_description, inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
       [make, model, year, description, image, thumbnail, price, miles, color, classification_id]
     );
-
+    return data.rows[0]
     // No need to return anything if the insertion is successful
   } catch (error) {
     console.error("Error adding inventory:", error);

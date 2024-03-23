@@ -1,5 +1,6 @@
 const invModel = require("../models/inventory-model")
 const utilities = require("../utilities/")
+const { validationResult } = require('express-validator');
 
 const invCont = {}
 
@@ -55,11 +56,11 @@ invCont.buildByInvID = async function (req, res, next) {
 invCont.renderManagementView = async function (req, res, next) {
   try {
     const nav = await utilities.getNav();
-    const classificationSelect = await utilities.buildClassificationList()
+    const classList = await utilities.buildClassificationList()
       res.render("./inventory/management", {
           title: "Management",
           nav,
-          classificationSelect
+          classList
       });
   } catch (error) {
       console.error("Error rendering management view: ", error);
@@ -103,21 +104,29 @@ invCont.addNewClassification = async function(req, res) {
   }
 };
 
-invCont.addInventoryView = async (req, res) => {
+invCont.addInventoryView = async function(req, res) {
   try {
-      // Retrieve classification data
-      const nav = await utilities.getNav();
-      const classificationSelect = await utilities.buildClassificationList()
-      // Render the view with classification data
-      res.render('inventory/add-inventory', { title: "Add Inventory", nav, errors: null, classificationSelect });
+    // Retrieve classification data
+    const nav = await utilities.getNav();
+    const classList = await utilities.buildClassificationList();
+    // Render the view with classification data
+    console.log("Classification select:", classList);
+    res.render('inventory/add-inventory', { 
+      title: "Add New Vehicle to Inventory", 
+      nav, 
+      errors: null, 
+      classList
+    });
   } catch (error) {
-      console.error('Error retrieving classifications:', error);
-      res.status(500).send('Internal Server Error');
+    console.error('Error retrieving classifications:', error);
+    res.status(500).send('Internal Server Error');
   }
 };
 
 // Handle form submission for adding inventory
 invCont.addInventory = async (req, res) => {
+  const nav = await utilities.getNav();
+  const classList = await utilities.buildClassificationList()
   try {
     // Extract data from the request body
     const { inv_make, inv_model, inv_year, inv_description, inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id } = req.body;
@@ -128,10 +137,28 @@ invCont.addInventory = async (req, res) => {
     }
 
     // Save the data to the database using the model
-    await invModel.addInventory(inv_make, inv_model, inv_year, inv_description, inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id);
-
-    // Redirect to a success page or the management view
-    res.redirect('/inv');
+    const result = await invModel.addInventory(inv_make, inv_model, inv_year, inv_description, inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id);
+    if (result) {
+      req.flash(
+        "notice",
+        "Vehicle ${inv_make} ${inv_model} was successfully created."
+      )
+      res.status(201).render('inventory/management',{
+        title: "Management",
+        nav,
+        errors: null
+      })
+    }
+    else {
+      console.log("Classification select:", classList);
+      req.flash("notice", "Sorry, the vehicle was not added.")
+      res.status(501).render("inventory/add-inventory", {
+        Title:"Add New Vehicle to Inventory",
+        nav,
+        classList,
+        errors: null,
+      })
+    }
   } catch (error) {
     console.error('Error adding inventory:', error);
     res.status(500).send('Failed to add inventory: ' + error.message);
@@ -155,28 +182,33 @@ invCont.getInventoryJSON = async (req, res, next) => {
  *  Build edit inventory view
  * ************************** */
 invCont.editInventoryView = async function (req, res, next) {
-  const inv_id = parseInt(req.params.inv_id);
-  let nav = await utilities.getNav();
-  const itemData = await invModel.getInventoryByInvId(inv_id);
-  const classificationSelect = await utilities.buildClassificationList();
-  const itemName = `${itemData.inv_make} ${itemData.inv_model}`
-  res.render("./inventory/edit-inventory", {
-    title: "Edit " + itemName,
-    nav,
-    classificationSelect: classificationSelect,
-    errors: null,
-    inv_id: itemData.inv_id,
-    inv_make: itemData.inv_make,
-    inv_model: itemData.inv_model,
-    inv_year: itemData.inv_year,
-    inv_description: itemData.inv_description,
-    inv_image: itemData.inv_image,
-    inv_thumbnail: itemData.inv_thumbnail,
-    inv_price: itemData.inv_price,
-    inv_miles: itemData.inv_miles,
-    inv_color: itemData.inv_color,
-    classification_id: itemData.classification_id
-  })
-}
+  try {
+    const inv_id = req.params.inv_id;
+    let nav = await utilities.getNav();
+    const itemData = await invModel.getInventoryByInvId(inv_id);
+    const classList = await utilities.buildClassificationList(); // Make sure this returns the expected value
+    const itemName = `${itemData.inv_make} ${itemData.inv_model}`
+    res.render("./inventory/edit-inventory", {
+      title: "Edit " + itemName,
+      nav,
+      classList: classList, // Ensure classList is properly obtained
+      errors: null,
+      inv_id: itemData.inv_id,
+      inv_make: itemData.inv_make,
+      inv_model: itemData.inv_model,
+      inv_year: itemData.inv_year,
+      inv_description: itemData.inv_description,
+      inv_image: itemData.inv_image,
+      inv_thumbnail: itemData.inv_thumbnail,
+      inv_price: itemData.inv_price,
+      inv_miles: itemData.inv_miles,
+      inv_color: itemData.inv_color,
+      classification_id: itemData.classification_id
+    });
+  } catch (error) {
+    console.error("Error rendering edit inventory view: ", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
 
 module.exports = invCont
