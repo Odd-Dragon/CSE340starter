@@ -18,7 +18,8 @@ const session = require("express-session")
 const pool = require('./database/')
 const bodyParser = require("body-parser")
 const cookieParser = require("cookie-parser")
-
+const jwt = require('jsonwebtoken');
+const secret = process.env.ACCESS_TOKEN_SECRET;
 
 /* ***********************
  * Middleware
@@ -45,6 +46,31 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 app.use(cookieParser())
 app.use(utilities.checkJWTToken)
+
+// Middleware to check authentication status and set 'loggedIn' variable
+app.use((req, res, next) => {
+  // Check if JWT token exists in cookies
+  const token = req.cookies.jwt;
+
+  if (token) {
+      // Verify JWT token
+      jwt.verify(token, secret, (err, decodedToken) => {
+          if (err) {
+              // Token is invalid or expired
+              res.locals.loggedIn = false; // Set loggedIn to false
+              next();
+          } else {
+              // Token is valid
+              res.locals.loggedIn = true; // Set loggedIn to true
+              next();
+          }
+      });
+  } else {
+      // No token found
+      res.locals.loggedIn = false; // Set loggedIn to false
+      next();
+  }
+});
 
 /* ***********************
  * View Engine and Templates

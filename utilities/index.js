@@ -122,21 +122,21 @@ Util.checkJWTToken = (req, res, next) => {
 
  Util.buildClassificationList = async function (classification_id = null) {
   let data = await invModel.getClassifications()
-  let classList =
+  let classificationList =
     '<select name="classification_id" id="classificationList" required>'
-  classList += "<option value=''>Choose a Classification</option>"
+  classificationList += "<option value=''>Choose a Classification</option>"
   data.rows.forEach((row) => {
-    classList += '<option value="' + row.classification_id + '"'
+    classificationList += '<option value="' + row.classification_id + '"'
     if (
       classification_id != null &&
       row.classification_id == classification_id
     ) {
-      classList += " selected "
+      classificationList += " selected "
     }
-    classList += ">" + row.classification_name + "</option>"
+    classificationList += ">" + row.classification_name + "</option>"
   })
-  classList += "</select>"
-  return classList
+  classificationList += "</select>"
+  return classificationList
 }
 
 /* ****************************************

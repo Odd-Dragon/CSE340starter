@@ -82,7 +82,7 @@ validate.classRules = () => {
         .isLength({ min: 1 })
         .withMessage("Please choose a classification.")
         .custom(async (value) => {
-          const classification = await invModel.getClassificationById(value);
+          const classification = await invModel.getClassifications(value);
           if (!classification) {
             return Promise.reject("Invalid classification.");
           }
@@ -90,6 +90,9 @@ validate.classRules = () => {
     ];
   };
   
+    /* ******************************
+ * Check data and return errors or continue to creation
+ * ***************************** */
   validate.checkInvData = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -116,5 +119,34 @@ validate.classRules = () => {
     next();
   };
 
-  
+    /* ******************************
+ * Check data and return errors or continue to creation
+ * ***************************** */
+  validate.checkUpdateData = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const nav = await utilities.getNav();
+      const {inv_make, inv_model, inv_year, inv_description, inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, inv_id} = req.body;
+      res.render("inventory/edit-inventory", {
+        title: "New Inventory",
+        nav,
+        errors,
+        locals: {
+          inv_make,
+          inv_model,
+          inv_year,
+          inv_description,
+          inv_image,
+          inv_thumbnail,
+          inv_price,
+          inv_miles,
+          inv_color,
+          inv_id
+        },
+      });
+      return;
+    }
+    next();
+  };
+
   module.exports = validate

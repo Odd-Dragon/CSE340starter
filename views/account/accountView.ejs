@@ -17,3 +17,12 @@
     <h1>Welcome!</h1>
     <p>You're logged in.</p>
     <% } %>
+    <% if (accountType === 'Client') { %>
+        <h2>Welcome <%= account_firstname %></h2>
+        <a href="/account/update/<%= accountId %>">Update Account Information</a>
+    <% } else { %>
+        <h2>Welcome <%= account_firstname %></h2>
+        <a href="/account/update/<%= accountId %>">Update Account Information</a>
+        <h3>Inventory Management</h3>
+        <p><a href="/inv">Manage Inventory</a></p>
+    <% } %>

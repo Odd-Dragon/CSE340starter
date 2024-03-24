@@ -14,7 +14,6 @@
        </ul>
       <% } %>
 
-      <h1>Add New Vehicle to Inventory</h1>
       <form action="/inv/update" method="post" id="editInventoryForm">
         <!-- inv_make input -->
         <label for="inv_make">Make:</label>
@@ -54,8 +53,13 @@
         <div></div>
         <!-- classification_id input -->
         <label for="classification">Classification:</label>
-        <%- classList %>
+        <%- classificationList %>
         <div></div>
         <!-- Submit Button -->
-        <button type="submit">Update Vehicle</button>
+        <button id= "updateButton" type="submit" disabled>Update Vehicle</button>
+        <noscript>JavaScript must be enabled to use this page.</noscript>
+        <script src="../../js/inventory.js"></script>
+        <input type="hidden" name="inv_id"
+      <% if(locals.inv_id) { %> value="<%= locals.inv_id %>"
+      <% } %>>
     </form>

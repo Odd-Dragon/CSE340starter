@@ -56,11 +56,11 @@ invCont.buildByInvID = async function (req, res, next) {
 invCont.renderManagementView = async function (req, res, next) {
   try {
     const nav = await utilities.getNav();
-    const classList = await utilities.buildClassificationList()
+    const classificationList = await utilities.buildClassificationList()
       res.render("./inventory/management", {
           title: "Management",
           nav,
-          classList
+          classificationList
       });
   } catch (error) {
       console.error("Error rendering management view: ", error);
@@ -108,14 +108,13 @@ invCont.addInventoryView = async function(req, res) {
   try {
     // Retrieve classification data
     const nav = await utilities.getNav();
-    const classList = await utilities.buildClassificationList();
+    const classificationList = await utilities.buildClassificationList();
     // Render the view with classification data
-    console.log("Classification select:", classList);
     res.render('inventory/add-inventory', { 
       title: "Add New Vehicle to Inventory", 
       nav, 
       errors: null, 
-      classList
+      classificationList
     });
   } catch (error) {
     console.error('Error retrieving classifications:', error);
@@ -126,14 +125,20 @@ invCont.addInventoryView = async function(req, res) {
 // Handle form submission for adding inventory
 invCont.addInventory = async (req, res) => {
   const nav = await utilities.getNav();
-  const classList = await utilities.buildClassificationList()
+  const classificationList = await utilities.buildClassificationList()
   try {
     // Extract data from the request body
     const { inv_make, inv_model, inv_year, inv_description, inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id } = req.body;
 
     // Check if any required field is missing
     if (!inv_make || !inv_model || !inv_year || !inv_price || !classification_id) {
-      return res.status(400).send('Missing required fields');
+      res.render('inventory/add-inventory', { 
+        title: "Add New Vehicle to Inventory", 
+        nav, 
+        errors: null, 
+        classificationList
+      });
+      res.status(400).send('Missing required fields');
     }
 
     // Save the data to the database using the model
@@ -141,25 +146,31 @@ invCont.addInventory = async (req, res) => {
     if (result) {
       req.flash(
         "notice",
-        "Vehicle ${inv_make} ${inv_model} was successfully created."
+        `Vehicle ${inv_make} ${inv_model} was successfully created.`
       )
       res.status(201).render('inventory/management',{
         title: "Management",
         nav,
-        errors: null
+        errors: null,
+        classificationList,
       })
     }
     else {
-      console.log("Classification select:", classList);
-      req.flash("notice", "Sorry, the vehicle was not added.")
+      req.flash("Sorry, the vehicle was not added.")
       res.status(501).render("inventory/add-inventory", {
         Title:"Add New Vehicle to Inventory",
         nav,
-        classList,
+        classificationList,
         errors: null,
       })
     }
   } catch (error) {
+    res.render('inventory/add-inventory', { 
+      title: "Add New Vehicle to Inventory", 
+      nav, 
+      errors: null, 
+      classificationList
+    });
     console.error('Error adding inventory:', error);
     res.status(500).send('Failed to add inventory: ' + error.message);
   }
@@ -186,14 +197,13 @@ invCont.editInventoryView = async function (req, res, next) {
     const inv_id = req.params.inv_id;
     let nav = await utilities.getNav();
     const itemData = await invModel.getInventoryByInvId(inv_id);
-    const classList = await utilities.buildClassificationList(); // Make sure this returns the expected value
+    const classificationList = await utilities.buildClassificationList(itemData.classification_id); // Make sure this returns the expected value
     const itemName = `${itemData.inv_make} ${itemData.inv_model}`
     res.render("./inventory/edit-inventory", {
       title: "Edit " + itemName,
       nav,
-      classList: classList, // Ensure classList is properly obtained
+      classificationList: classificationList, // Ensure classificationList is properly obtained
       errors: null,
-      inv_id: itemData.inv_id,
       inv_make: itemData.inv_make,
       inv_model: itemData.inv_model,
       inv_year: itemData.inv_year,
@@ -203,6 +213,7 @@ invCont.editInventoryView = async function (req, res, next) {
       inv_price: itemData.inv_price,
       inv_miles: itemData.inv_miles,
       inv_color: itemData.inv_color,
+      inv_id: itemData.inv_id,
       classification_id: itemData.classification_id
     });
   } catch (error) {
@@ -210,5 +221,122 @@ invCont.editInventoryView = async function (req, res, next) {
     res.status(500).send("Internal Server Error");
   }
 };
+
+/* ***************************
+ *  Update Inventory Data
+ * ************************** */
+invCont.updateInventory = async function (req, res, next) {
+  let nav = await utilities.getNav()
+  const {
+    inv_id,
+    inv_make,
+    inv_model,
+    inv_description,
+    inv_image,
+    inv_thumbnail,
+    inv_price,
+    inv_year,
+    inv_miles,
+    inv_color,
+    classification_id,
+  } = req.body
+  const updateResult = await invModel.updateInventory(
+    inv_id,  
+    inv_make,
+    inv_model,
+    inv_description,
+    inv_image,
+    inv_thumbnail,
+    inv_price,
+    inv_year,
+    inv_miles,
+    inv_color,
+    classification_id
+  )
+
+  if (updateResult) {
+    const itemName = updateResult.inv_make + " " + updateResult.inv_model
+    req.flash("notice", `The ${itemName} was successfully updated.`)
+    res.redirect("/inv/")
+  } else {
+    const classificationList = await utilities.buildClassificationList(classification_id)
+    const itemName = `${inv_make} ${inv_model}`
+    req.flash("notice", "Sorry, the insert failed.")
+    res.status(501).render("inventory/edit-inventory", {
+    title: "Edit " + itemName,
+    nav,
+    classificationList: classificationList,
+    errors: null,
+    inv_id,
+    inv_make,
+    inv_model,
+    inv_year,
+    inv_description,
+    inv_image,
+    inv_thumbnail,
+    inv_price,
+    inv_miles,
+    inv_color,
+    classification_id
+    })
+  }
+}
+
+/* ***************************
+ *  Build delete inventory view
+ * ************************** */
+invCont.deleteInventoryView = async function (req, res, next) {
+  try {
+    const inv_id = req.params.inv_id;
+    let nav = await utilities.getNav();
+    const itemData = await invModel.getInventoryByInvId(inv_id);
+    const classificationList = await utilities.buildClassificationList(itemData.classification_id); // Make sure this returns the expected value
+    const itemName = `${itemData.inv_make} ${itemData.inv_model}`
+    res.render("./inventory/delete-confirm", {
+      title: "Delete " + itemName,
+      nav,
+      classificationList: classificationList, // Ensure classificationList is properly obtained
+      errors: null,
+      inv_make: itemData.inv_make,
+      inv_model: itemData.inv_model,
+      inv_year: itemData.inv_year,
+      inv_price: itemData.inv_price,
+      inv_id: itemData.inv_id,
+      classification_id: itemData.classification_id
+    });
+  } catch (error) {
+    console.error("Error rendering delete inventory view: ", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+/* ***************************
+ *  Delete Inventory Data
+ * ************************** */
+invCont.deleteInventory = async function (req, res, next) {
+  let nav = await utilities.getNav();
+  const { inv_id } = req.body; // Assuming the inv_id is passed in the request body
+
+  try {
+    // Call the deleteInventory model function passing inv_id
+    const deleteResult = await invModel.deleteInventory(inv_id);
+
+    if (deleteResult) {
+      // Successful deletion
+      req.flash("notice", `The vehicle was successfully deleted.`);
+      res.redirect("/inv/");
+    } else {
+      // Deletion failed
+      req.flash("error", "Failed to delete the vehicle.");
+      res.redirect("/inv/");
+    }
+  } catch (error) {
+    // Handle errors
+    console.error("Error deleting inventory:", error);
+    req.flash("error", "An error occurred while deleting the vehicle.");
+    res.redirect("/inv/");
+  }
+};
+
 
 module.exports = invCont

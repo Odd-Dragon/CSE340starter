@@ -81,40 +81,108 @@ async function registerAccount(req, res) {
  *  Process login request
  * ************************************ */
 async function accountLogin(req, res) {
-  let nav = await utilities.getNav()
-  const { account_email, account_password } = req.body
-  const accountData = await accountModel.getAccountByEmail(account_email)
+  let nav = await utilities.getNav();
+  const { account_email, account_password } = req.body;
+  const accountData = await accountModel.getAccountByEmail(account_email);
+
   if (!accountData) {
-   req.flash("notice", "Please check your credentials and try again.")
-   res.status(400).render("account/login", {
-    title: "Login",
-    nav,
-    errors: null,
-    account_email,
-   })
-  return
+      req.flash("notice", "Please check your credentials and try again.");
+      return res.status(400).render("account/login", {
+          title: "Login",
+          nav,
+          errors: null,
+          account_email,
+      });
   }
+
   try {
-   if (await bcrypt.compare(account_password, accountData.account_password)) {
-   delete accountData.account_password
-   const accessToken = jwt.sign(accountData, process.env.ACCESS_TOKEN_SECRET, { expiresIn: 3600 })
-   if(process.env.NODE_ENV === 'development') {
-     res.cookie("jwt", accessToken, { httpOnly: true, maxAge: 3600 * 1000 })
-     } else {
-       res.cookie("jwt", accessToken, { httpOnly: true, secure: true, maxAge: 3600 * 1000 })
-     }
-   return res.redirect("/account/")
-   }
+      if (await bcrypt.compare(account_password, accountData.account_password)) {
+          delete accountData.account_password;
+
+          // Include accountType and accountId along with existing data in the JWT payload
+          const payload = {
+              ...accountData, // Spread existing data
+              accountType: accountData.accountType,
+              accountId: accountData.accountId
+          };
+
+          const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: 3600 });
+          if (process.env.NODE_ENV === 'development') {
+              res.cookie("jwt", accessToken, { httpOnly: true, maxAge: 3600 * 1000 });
+          } else {
+              res.cookie("jwt", accessToken, { httpOnly: true, secure: true, maxAge: 3600 * 1000 });
+          }
+          return res.redirect("/account/");
+      } else {
+          // Passwords don't match
+          req.flash("notice", "Invalid email or password.");
+          return res.status(400).render("account/login", {
+              title: "Login",
+              nav,
+              errors: null,
+              account_email,
+          });
+      }
   } catch (error) {
-   return new Error('Access Forbidden')
+      console.error("Error:", error.message);
+      return res.status(500).send("Internal Server Error");
   }
- }
+}
  async function  showAccountView(req, res) {
       let nav = await utilities.getNav()
+      const token = req.cookies.jwt;
+      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      const accountType = decodedToken.accountType;
+      const account_firstname = decodedToken.account_firstname;
+      const accountId = decodedToken.accountId;
       res.render('account/accountView', {
       title: "Account",
       nav,
-      errors: null});
+      errors: null,
+      accountType: accountType,
+      account_firstname: account_firstname,
+      accountId: accountId});
   }
 
-module.exports = { buildLogin, buildRegister, registerAccount, accountLogin, showAccountView }
+  async function renderUpdateForm(req, res) {
+    try {
+      const token = req.cookies.jwt;
+      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      const { accountId, account_firstname, account_lastname, account_email } = decodedToken;
+      let nav = await utilities.getNav();
+        // Render the account update form view
+        res.render('account/update', {
+            title: 'Account Update Form',
+            nav,
+            account_firstname: account_firstname,
+            account_lastname: account_lastname,
+            account_email: account_email,
+            accountId: accountId,
+            errors: null
+        });
+    } catch (error) {
+        console.error('Error rendering account update form:', error);
+        res.status(500).send('Internal Server Error');
+    }
+}
+
+async function renderChangePasswordForm(req, res) {
+    try {
+      const token = req.cookies.jwt;
+      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      const accountId = decodedToken.accountId;
+      let nav = await utilities.getNav();
+        // Render the change password form view
+        res.render('account/change-password', {
+            title: 'Change Password',
+            nav,
+            accountId: accountId,
+            errors: null
+        });
+    } catch (error) {
+        console.error('Error rendering change password form:', error);
+        res.status(500).send('Internal Server Error');
+    }
+}
+
+module.exports = { buildLogin, buildRegister, registerAccount, accountLogin, showAccountView, renderUpdateForm, renderChangePasswordForm }

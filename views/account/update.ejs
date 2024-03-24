@@ -1,0 +1,50 @@
+<% if (title) { %>
+    <h1><%= title %></h1>
+<% } else {
+    res.redirect('/');
+} %>
+
+<%- messages() %>
+<% if (errors) { %>
+    <ul class="notice">
+   <% errors.array().forEach(error => { %>
+     <li><%= error.msg %></li>
+  <%  }) %>
+   </ul>
+  <% } %>
+
+
+  <h2>Account Update Form</h2>
+  <form action="/account/update" method="POST">
+      <div>
+          <label for="firstname">First Name:</label>
+          <input type="text" id="firstname" name="firstname" value="<%= account_firstname %>" required>
+      </div>
+      <div>
+          <label for="lastname">Last Name:</label>
+          <input type="text" id="lastname" name="lastname" value="<%= account_lastname %>" required>
+      </div>
+      <div>
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" value="<%= account_email %>" required>
+      </div>
+      <input type="hidden" name="accountId" value="<%= accountId %>">
+      <button type="submit">Update Account</button>
+  </form>
+  
+
+  <h2>Change Password</h2>
+  <form action="/account/change-password" method="POST">
+      <div>
+          <label for="newPassword">New Password:</label>
+          <input type="password" id="newPassword" name="newPassword" required pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{12,}$">
+      </div>
+      <div>
+          <label for="confirmPassword">Confirm New Password:</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" required pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{12,}$">
+      </div>
+      <p>Password must be at least 12 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character.</p>
+      <input type="hidden" name="accountId" value="<%= accountId %>">
+      <button type="submit">Change Password</button>
+  </form>
+  

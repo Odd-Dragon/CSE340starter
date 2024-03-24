@@ -2,6 +2,7 @@ const utilities = require(".")
 const { body, validationResult } = require("express-validator")
 const validate = {}
 const accountModel = require("../models/account-model")
+const jwt = require('jsonwebtoken');
 
 /*  **********************************
  *  Registration Data Validation Rules
@@ -114,5 +115,35 @@ validate.checkLoginData = async (req, res, next) => {
     }
     next()
   }
+
+  validate.checkAuthAndAccountType = (req, res, next) => {
+    const token = req.cookies.jwt;
+
+    if (token) {
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, decodedToken) => {
+            if (err) {
+                // Token verification failed
+                console.log("Error: There was a mistake.")
+                res.redirect('/account/login?error=There was a mistake.'); // Redirect to login page
+            } else {
+                // Token verification successful
+                const accountType = decodedToken.accountType;
+                // Check if account type is "Employee" or "Admin"
+                if (accountType === "Client") {
+                    // Account type is not authorized
+                    console.log("Error: You are not authorized to access that page.")
+                    res.redirect('/account/login?error=You are not authorized to access that page.'); // Redirect to login page with appropriate message
+                } else {
+                  // Allow access to administrative views
+                  next();
+                }
+            }
+        });
+    } else {
+        // No token found, user is not authenticated
+        console.log("Error: You are not authenticated.")
+        res.redirect('/account/login?error=You are not authenticated.'); // Redirect to login page
+    }
+};
   
   module.exports = validate
